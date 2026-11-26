@@ -16,7 +16,7 @@ no randomness, no clock dependence.
 import os
 from pathlib import Path
 
-# The greeting itself, plus the single trailing newline the entry carries.
+# The winning greeting, with the single trailing newline the entry carries.
 GREETING = "Leave a message after the purr. If it's urgent, open a can in any room and I'll appear instantly."
 TEXT = GREETING + "\n"
 
