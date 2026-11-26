@@ -1,52 +1,56 @@
 #!/usr/bin/env python3
-"""Entry for 'Funniest Cat Voicemail Greeting' (u-eager-stork-81-9647-funniest-cat-voicemail-greeting-8eaad443).
+"""Answering-machine humour, feline edition.
 
-Three candidate greetings were considered:
-  A) "You've reached the cat. I'm not ignoring you, I'm ignoring everyone - leave food, not messages."
-  B) "Hi, this is Whiskers. I'm asleep in your clean laundry; your call will be sat on in 3-5 business days."
-  C) "Leave a message after the purr. If it's urgent, open a can in any room and I'll appear instantly."
-Chosen: C. It pairs the familiar voicemail formula with the can-opener
-summoning trick, which lands in a single read; A and B are pure attitude
-jokes with no equivalent payoff.
+This submission targets the make.fun bounty 'Funniest Cat Voicemail
+Greeting' (slug u-eager-stork-81-9647-funniest-cat-voicemail-greeting-8eaad443).
+The joke leans on two things every cat owner recognises: the household
+cat never answers anything on your schedule, yet the sound of a tin
+being opened summons it from anywhere in the building. The greeting
+below borrows the shape of a classic voicemail script and swaps the
+usual callback promise for that can-opener guarantee.
 
-The program is fully deterministic: one fixed string, no network access,
-no randomness, no clock dependence.
+Running the script emits the greeting, unchanged, every single time.
+Nothing here touches the network, rolls dice, or consults a clock.
 """
 
 import os
 from pathlib import Path
 
-# The winning greeting, with the single trailing newline the entry carries.
-GREETING = "Leave a message after the purr. If it's urgent, open a can in any room and I'll appear instantly."
-TEXT = GREETING + "\n"
+# The greeting that callers hear, preserved word for word as one constant.
+VOICEMAIL_LINE = "Leave a message after the purr. If it's urgent, open a can in any room and I'll appear instantly."
 
-# Competition ceiling on greeting length, measured in characters.
-MAX_CHARS = 120
+# What actually lands on disk: the greeting plus its ending newline.
+PAYLOAD = VOICEMAIL_LINE + "\n"
+
+# The contest caps a greeting at this many characters.
+CHAR_LIMIT = 120
 
 
-def validate(text: str) -> None:
-    """Guard the invariants the entry text must satisfy.
+def check_greeting(payload: str) -> None:
+    """Sanity-check the payload before it is written anywhere.
 
-    Strips one trailing newline, then requires a non-empty single line of
-    at most MAX_CHARS characters with no stray or doubled whitespace.
+    Peels off the trailing newline, then insists the remainder is a
+    lone, non-blank line that fits the character cap and carries no
+    accidental padding or doubled spaces.
     """
-    body = text[:-1] if text.endswith("\n") else text
-    if not 1 <= len(body) <= MAX_CHARS:
-        raise ValueError("entry length out of range")
-    if not body.strip():
-        raise ValueError("entry must not be only whitespace")
-    if "\n" in body or "\r" in body:
-        raise ValueError("entry must be one line")
-    if body != body.strip() or "  " in body:
-        raise ValueError("no stray whitespace")
+    core = payload[:-1] if payload.endswith("\n") else payload
+    if not core.strip():
+        raise ValueError("greeting must contain visible characters")
+    if len(core) == 0 or len(core) > CHAR_LIMIT:
+        raise ValueError("greeting length outside the allowed range")
+    if "\n" in core or "\r" in core:
+        raise ValueError("greeting has to stay on one line")
+    if core != core.strip() or "  " in core:
+        raise ValueError("greeting has stray whitespace")
 
 
-def main() -> None:
-    validate(TEXT)
-    target_dir = Path(os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output")
-    target_dir.mkdir(parents=True, exist_ok=True)
-    (target_dir / "entry.txt").write_bytes(TEXT.encode("utf-8"))
+def emit() -> None:
+    """Validate the payload and drop it into the output directory."""
+    check_greeting(PAYLOAD)
+    out_dir = Path(os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "entry.txt").write_bytes(PAYLOAD.encode("utf-8"))
 
 
 if __name__ == "__main__":
-    main()
+    emit()
